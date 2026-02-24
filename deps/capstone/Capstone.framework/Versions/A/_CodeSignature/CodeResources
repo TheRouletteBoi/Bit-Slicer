@@ -6,50 +6,41 @@
 	<dict>
 		<key>Resources/Info.plist</key>
 		<data>
-		zPB2wBqxyRBebZPbBzYAVLWpLWQ=
+		5C1tZX/GsAXzMOXcZWJzpW39ZPM=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Headers/arm.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			AFEW/VhuMzqpqYBIOxXBxLWhWj8=
-			</data>
 			<key>hash2</key>
 			<data>
-			3jm6WIfN4jbtxxuJ1GXHze+UrLxtSeYWyD7r36joPQw=
+			3thb3Fivy5Hm6v7sKrBcEVpwFmJEtFG3yQaAVcLZi7s=
 			</data>
 		</dict>
 		<key>Headers/arm64.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			U+qTJlZEq3FlI7zR/T9vuQY+V8Q=
-			</data>
 			<key>hash2</key>
 			<data>
-			JwEERvu3+h+4PxPw8RpFTCf2dFzLU5Lu4iYPmGGbQss=
+			+UI/tYUElRof9RCPgz+GhCHp/rdUPkM9MM3aBR2kcOU=
+			</data>
+		</dict>
+		<key>Headers/bpf.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			9CperR730w8Ds8rzZYmR+wGosouF/ESNOMi62QiiEQ8=
 			</data>
 		</dict>
 		<key>Headers/capstone.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			mAYp1WGvQsQsxRVuJ8/iMSm4fFg=
-			</data>
 			<key>hash2</key>
 			<data>
-			CbOKngZZfnQbDprKuYx22KY0msCwG6pyfSB4HGpqURs=
+			Jf0/otsQ0h+0BA3J7lbZ6Bt3iTKGELuNrZldBcQS8BU=
 			</data>
 		</dict>
 		<key>Headers/evm.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			yZBjUhYcHM+nEahc0+g5OOsmZJQ=
-			</data>
 			<key>hash2</key>
 			<data>
 			ocPHtgzBaqhuLGXG2IKHMshBHygbf10gHTqnxmmS5q4=
@@ -57,10 +48,6 @@
 		</dict>
 		<key>Headers/m680x.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			MCfghoOu/pirPcZah6hFEuBUo28=
-			</data>
 			<key>hash2</key>
 			<data>
 			lRkRTw2OE1z7rwAiQQAzeasQ8AMgOOSzA38jIr+Y02w=
@@ -68,10 +55,6 @@
 		</dict>
 		<key>Headers/m68k.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			8BsImQrcUfsOUsjaVEnRtz6gYcc=
-			</data>
 			<key>hash2</key>
 			<data>
 			MmBxc9ERJ123CaZ2ev0SF05vAiaYf4xoQX1xpLzxTaM=
@@ -79,21 +62,20 @@
 		</dict>
 		<key>Headers/mips.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			uKqabSordXugdJFdQbHwyXayMDY=
-			</data>
 			<key>hash2</key>
 			<data>
-			LBQyKuhvYt5xWfFgaPi4nqqqZVNiMZ4lm2Iv6FG9EZ4=
+			S8yEnwmyx94rEkMvAAugpUv7hrFXjaHA9u3hAwU9roA=
+			</data>
+		</dict>
+		<key>Headers/mos65xx.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			KI0QXlv/9lSAY32hKEy4MJHPxur8GRUu4hBoCQkFPN8=
 			</data>
 		</dict>
 		<key>Headers/platform.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			f3NuwyRrHEAeNB2dekMRUpfjThE=
-			</data>
 			<key>hash2</key>
 			<data>
 			F/+DK1e4Vkc2iGDBbsMa54nnOqrBgvxanTwuvo++pWg=
@@ -101,21 +83,27 @@
 		</dict>
 		<key>Headers/ppc.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			VjjsVpoe45hOz6FueNKlNJ+mZQw=
-			</data>
 			<key>hash2</key>
 			<data>
-			TDhaUieb8iLJmMCrcMwCtx1OO0hmnhL67LXvjDdWuwU=
+			Xf7b/k2R/8UZjxAt3pAhatySiUQCkuMETsJtG7ALVC0=
+			</data>
+		</dict>
+		<key>Headers/riscv.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			fGhMl3+C1Owr6koQwwrjJ6A3ooSXjAFNcg5H5Y0CUjo=
+			</data>
+		</dict>
+		<key>Headers/sh.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			ssYIXEdtn5hl+143V84ja8acaG4XSPOrRv4MGVfZsDE=
 			</data>
 		</dict>
 		<key>Headers/sparc.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			5Ph5dog8IrveafMgc84Jhug9cUw=
-			</data>
 			<key>hash2</key>
 			<data>
 			spoDiQLuNHFa+4NX4aIjHj9LGj2rga1b0vM2oY97/ks=
@@ -123,43 +111,41 @@
 		</dict>
 		<key>Headers/systemz.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			vs7gZ9crqGgxo5L3YEpRQTycvg4=
-			</data>
 			<key>hash2</key>
 			<data>
-			oFYSNknOXVrOQGIxCxdyNhl6bQssPOpx27tlElgCZ1I=
+			g3teBsjuNmInrEP0teuP99eferrV5nn7ghxu0esA7kM=
 			</data>
 		</dict>
 		<key>Headers/tms320c64x.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			hqdnMaWyEJWFrB/b7YTjmr7nXpA=
-			</data>
 			<key>hash2</key>
 			<data>
 			d4I6+t4mT/BMfcjQ8mZEihES5RA1yTy2q9b6RE177O0=
 			</data>
 		</dict>
-		<key>Headers/x86.h</key>
+		<key>Headers/tricore.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			gc91VpPVJsS5QNZJOotr1eh+sp8=
-			</data>
 			<key>hash2</key>
 			<data>
-			JZeAWRJel2mTRWNbdxnyTP0u2Hf14eLsorM3nV/95TE=
+			kK90lEe8M2onHlcJO3HFNuadBqdaC58Iy5ElnjAZoQo=
+			</data>
+		</dict>
+		<key>Headers/wasm.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			ezJq3/LdXkvLEfb71kg1rlCoUMxAaKZJIlx1F9IsjJs=
+			</data>
+		</dict>
+		<key>Headers/x86.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			OaUyel/uKeihbqOR0KaBOwRGrrBsZHluvU4W/kJuYZ8=
 			</data>
 		</dict>
 		<key>Headers/xcore.h</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			htvsxbrtclSSZO3/dfRxCn55vsI=
-			</data>
 			<key>hash2</key>
 			<data>
 			yf5ZP1HUZFMhEUuUz6dTB3YKQHaYWDNMjbUDfvuzzkQ=
@@ -167,10 +153,6 @@
 		</dict>
 		<key>Modules/module.modulemap</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			JjXKVeKCNYr5KDMucaoCHbn5Xf0=
-			</data>
 			<key>hash2</key>
 			<data>
 			sq+OpBdjvnvOzylAVo3S+wGgPXkdxSVx9zMEmrUc9b4=
@@ -178,13 +160,9 @@
 		</dict>
 		<key>Resources/Info.plist</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			zPB2wBqxyRBebZPbBzYAVLWpLWQ=
-			</data>
 			<key>hash2</key>
 			<data>
-			UC8fc9H91DvYSw2kYxV0zeTA7RhSTx33YDPJTcc+qDU=
+			XmWxNKjj0aNl83Tnv1N3Y9YHuRXUDW6oFLjRPKdWHa4=
 			</data>
 		</dict>
 	</dict>
