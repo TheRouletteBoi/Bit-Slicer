@@ -72,6 +72,8 @@
 	NSInteger _lastUpdateCount;
 	
 	IBOutlet HFTextView *_textView;
+	
+	NSSegmentedControl * _Nullable _bytesPerColumnControl;
 }
 
 #pragma mark Accessors
@@ -218,6 +220,78 @@
 
 	self.desiredProcessInternalName = self.lastChosenInternalProcessName;
 	[self updateRunningProcesses];
+	
+	[self setupBytesPerColumnControl];
+}
+
+- (void)setupBytesPerColumnControl
+{
+	NSWindow *window = self.window;
+	if (!window.contentView)
+		return;
+
+	NSView *contentView = window.contentView;
+
+	_bytesPerColumnControl = [[NSSegmentedControl alloc] init];
+	[_bytesPerColumnControl setSegmentCount:5];
+	[_bytesPerColumnControl setLabel:@"1" forSegment:0];
+	[_bytesPerColumnControl setLabel:@"2" forSegment:1];
+	[_bytesPerColumnControl setLabel:@"4" forSegment:2];
+	[_bytesPerColumnControl setLabel:@"8" forSegment:3];
+	[_bytesPerColumnControl setLabel:@"16" forSegment:4];
+	_bytesPerColumnControl.segmentStyle = NSSegmentStyleRounded;
+	_bytesPerColumnControl.trackingMode = NSSegmentSwitchTrackingSelectOne;
+	[_bytesPerColumnControl setSelectedSegment:0];
+	[_bytesPerColumnControl setTarget:self];
+	[_bytesPerColumnControl setAction:@selector(changeBytesPerColumn:)];
+	[_bytesPerColumnControl sizeToFit];
+
+	// A 0 value would cause changeMemoryView: to call changeMemoryViewWithSelectionLength:0
+	// which silently skips highlighting the jumped to address.
+	_textView.controller.bytesPerColumn = 1;
+
+	NSTextField *groupLabel = [NSTextField labelWithString:@"Group:"];
+	groupLabel.font = [NSFont systemFontOfSize:NSFont.smallSystemFontSize];
+	[groupLabel sizeToFit];
+
+	const CGFloat kPadX = 8.0;
+	const CGFloat kPadY = 4.0;
+	const CGFloat kSpacing = 6.0;
+	CGFloat barHeight = MAX(groupLabel.frame.size.height, _bytesPerColumnControl.frame.size.height) + kPadY * 2.0;
+	CGFloat contentWidth = contentView.bounds.size.width;
+
+	// NSWindow contentView is not flipped: y=0 is bottom, top = bounds.size.height
+	CGFloat barY = contentView.bounds.size.height - barHeight;
+	NSView *controlBar = [[NSView alloc] initWithFrame:NSMakeRect(0, barY, contentWidth, barHeight)];
+	controlBar.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin;
+
+	CGFloat labelY = floor((barHeight - groupLabel.frame.size.height) / 2.0);
+	[groupLabel setFrameOrigin:NSMakePoint(kPadX, labelY)];
+	groupLabel.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
+
+	CGFloat segX = NSMaxX(groupLabel.frame) + kSpacing;
+	CGFloat segY = floor((barHeight - _bytesPerColumnControl.frame.size.height) / 2.0);
+	[_bytesPerColumnControl setFrameOrigin:NSMakePoint(segX, segY)];
+	_bytesPerColumnControl.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
+
+	[controlBar addSubview:groupLabel];
+	[controlBar addSubview:_bytesPerColumnControl];
+	[contentView addSubview:controlBar];
+
+	// Shrink _textView height to make room for the bar above it
+	NSRect hexFrame = _textView.frame;
+	hexFrame.size.height -= barHeight;
+	[_textView setFrame:hexFrame];
+}
+
+#pragma mark Bytes Per Column
+
+- (IBAction)changeBytesPerColumn:(nullable id)sender
+{
+	static const NSUInteger kByteSizes[] = {1, 2, 4, 8, 16};
+	NSSegmentedControl *segmentedControl = (NSSegmentedControl *)sender;
+	NSUInteger bytesPerColumn = kByteSizes[segmentedControl.selectedSegment];
+	_textView.controller.bytesPerColumn = bytesPerColumn;
 }
 
 - (void)updateWindowAndReadMemory:(BOOL)shouldReadMemory
@@ -528,7 +602,8 @@
 		return;
 	}
 	
-	[self changeMemoryViewWithSelectionLength:DEFAULT_MEMORY_VIEWER_SELECTION_LENGTH];
+	NSUInteger selectionLength = (_textView.controller.bytesPerColumn != 0) ? _textView.controller.bytesPerColumn : 1;
+	[self changeMemoryViewWithSelectionLength:selectionLength];
 }
 
 - (void)changeMemoryViewWithSelectionLength:(ZGMemorySize)selectionLength

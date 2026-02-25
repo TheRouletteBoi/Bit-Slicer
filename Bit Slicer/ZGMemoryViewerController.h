@@ -53,6 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)jumpToMemoryAddress:(ZGMemoryAddress)memoryAddress withSelectionLength:(ZGMemorySize)selectionLength inProcess:(ZGProcess *)requestedProcess;
 
 - (IBAction)toggleDataInspector:(nullable id)sender;
+- (IBAction)changeBytesPerColumn:(nullable id)sender;
 
 @end
 
