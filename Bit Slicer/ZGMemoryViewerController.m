@@ -52,6 +52,7 @@
 #define ZGMemoryViewerAddressField @"ZGMemoryViewerAddressField"
 #define ZGMemoryViewerProcessInternalName @"ZGMemoryViewerProcessName"
 #define ZGMemoryViewerShowsDataInspector @"ZGMemoryViewerShowsDataInspector"
+#define ZGMemoryViewerBytesPerColumn @"ZGMemoryViewerBytesPerColumn"
 
 #define ZGLocalizedStringFromMemoryViewerTable(string) NSLocalizedStringFromTable((string), @"[Code] Memory Viewer", nil)
 
@@ -72,8 +73,8 @@
 	NSInteger _lastUpdateCount;
 	
 	IBOutlet HFTextView *_textView;
-	
-	NSSegmentedControl * _Nullable _bytesPerColumnControl;
+
+	id _Nullable _keyEventMonitor;
 }
 
 #pragma mark Accessors
@@ -116,7 +117,7 @@
 {
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		[[NSUserDefaults standardUserDefaults] registerDefaults:@{ZGMemoryViewerShowsDataInspector : @YES}];
+		[[NSUserDefaults standardUserDefaults] registerDefaults:@{ZGMemoryViewerShowsDataInspector : @YES, ZGMemoryViewerBytesPerColumn : @1}];
 	});
 }
 
@@ -134,8 +135,8 @@
 {
 	[super encodeRestorableStateWithCoder:coder];
 
-    [coder encodeObject:self.addressTextField.stringValue forKey:ZGMemoryViewerAddressField];
-    [coder encodeObject:self.desiredProcessInternalName forKey:ZGMemoryViewerProcessInternalName];
+	[coder encodeObject:self.addressTextField.stringValue forKey:ZGMemoryViewerAddressField];
+	[coder encodeObject:self.desiredProcessInternalName forKey:ZGMemoryViewerProcessInternalName];
 }
 
 - (void)restoreStateWithCoder:(NSCoder *)coder
@@ -216,82 +217,13 @@
 		[self toggleDataInspector:nil];
 	}
 
+	[self restoreBytesPerColumn];
+	[self startKeyEventMonitor];
+
 	[self setupProcessListNotifications];
 
 	self.desiredProcessInternalName = self.lastChosenInternalProcessName;
 	[self updateRunningProcesses];
-	
-	[self setupBytesPerColumnControl];
-}
-
-- (void)setupBytesPerColumnControl
-{
-	NSWindow *window = self.window;
-	if (!window.contentView)
-		return;
-
-	NSView *contentView = window.contentView;
-
-	_bytesPerColumnControl = [[NSSegmentedControl alloc] init];
-	[_bytesPerColumnControl setSegmentCount:5];
-	[_bytesPerColumnControl setLabel:@"1" forSegment:0];
-	[_bytesPerColumnControl setLabel:@"2" forSegment:1];
-	[_bytesPerColumnControl setLabel:@"4" forSegment:2];
-	[_bytesPerColumnControl setLabel:@"8" forSegment:3];
-	[_bytesPerColumnControl setLabel:@"16" forSegment:4];
-	_bytesPerColumnControl.segmentStyle = NSSegmentStyleRounded;
-	_bytesPerColumnControl.trackingMode = NSSegmentSwitchTrackingSelectOne;
-	[_bytesPerColumnControl setSelectedSegment:0];
-	[_bytesPerColumnControl setTarget:self];
-	[_bytesPerColumnControl setAction:@selector(changeBytesPerColumn:)];
-	[_bytesPerColumnControl sizeToFit];
-
-	// A 0 value would cause changeMemoryView: to call changeMemoryViewWithSelectionLength:0
-	// which silently skips highlighting the jumped to address.
-	_textView.controller.bytesPerColumn = 1;
-
-	NSTextField *groupLabel = [NSTextField labelWithString:@"Group:"];
-	groupLabel.font = [NSFont systemFontOfSize:NSFont.smallSystemFontSize];
-	[groupLabel sizeToFit];
-
-	const CGFloat kPadX = 8.0;
-	const CGFloat kPadY = 4.0;
-	const CGFloat kSpacing = 6.0;
-	CGFloat barHeight = MAX(groupLabel.frame.size.height, _bytesPerColumnControl.frame.size.height) + kPadY * 2.0;
-	CGFloat contentWidth = contentView.bounds.size.width;
-
-	// NSWindow contentView is not flipped: y=0 is bottom, top = bounds.size.height
-	CGFloat barY = contentView.bounds.size.height - barHeight;
-	NSView *controlBar = [[NSView alloc] initWithFrame:NSMakeRect(0, barY, contentWidth, barHeight)];
-	controlBar.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin;
-
-	CGFloat labelY = floor((barHeight - groupLabel.frame.size.height) / 2.0);
-	[groupLabel setFrameOrigin:NSMakePoint(kPadX, labelY)];
-	groupLabel.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
-
-	CGFloat segX = NSMaxX(groupLabel.frame) + kSpacing;
-	CGFloat segY = floor((barHeight - _bytesPerColumnControl.frame.size.height) / 2.0);
-	[_bytesPerColumnControl setFrameOrigin:NSMakePoint(segX, segY)];
-	_bytesPerColumnControl.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
-
-	[controlBar addSubview:groupLabel];
-	[controlBar addSubview:_bytesPerColumnControl];
-	[contentView addSubview:controlBar];
-
-	// Shrink _textView height to make room for the bar above it
-	NSRect hexFrame = _textView.frame;
-	hexFrame.size.height -= barHeight;
-	[_textView setFrame:hexFrame];
-}
-
-#pragma mark Bytes Per Column
-
-- (IBAction)changeBytesPerColumn:(nullable id)sender
-{
-	static const NSUInteger kByteSizes[] = {1, 2, 4, 8, 16};
-	NSSegmentedControl *segmentedControl = (NSSegmentedControl *)sender;
-	NSUInteger bytesPerColumn = kByteSizes[segmentedControl.selectedSegment];
-	_textView.controller.bytesPerColumn = bytesPerColumn;
 }
 
 - (void)updateWindowAndReadMemory:(BOOL)shouldReadMemory
@@ -309,6 +241,70 @@
 	return READ_MEMORY_INTERVAL;
 }
 
+#pragma mark Byte Grouping
+
+- (void)restoreBytesPerColumn
+{
+	NSUInteger bytesPerColumn = (NSUInteger)[[NSUserDefaults standardUserDefaults] integerForKey:ZGMemoryViewerBytesPerColumn];
+	// Clamp to valid values in case the stored preference is somehow invalid.
+	if (bytesPerColumn != 1 && bytesPerColumn != 2 && bytesPerColumn != 4 && bytesPerColumn != 8 && bytesPerColumn != 16)
+	{
+		bytesPerColumn = 1;
+	}
+	_textView.controller.bytesPerColumn = bytesPerColumn;
+}
+
+- (void)startKeyEventMonitor
+{
+	_keyEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent * _Nullable(NSEvent *event) {
+		if (event.window != self.window)
+		{
+			return event;
+		}
+		NSEventModifierFlags relevantFlags = event.modifierFlags & (NSEventModifierFlagShift | NSEventModifierFlagControl | NSEventModifierFlagOption | NSEventModifierFlagCommand);
+		if ([event.charactersIgnoringModifiers isEqualToString:@" "] && relevantFlags == 0)
+		{
+			NSResponder *firstResponder = self.window.firstResponder;
+			if ([firstResponder isKindOfClass:[NSView class]] && [(NSView *)firstResponder isDescendantOf:self->_textView])
+			{
+				[self cycleByteGrouping:nil];
+				return nil;
+			}
+		}
+		return event;
+	}];
+}
+
+- (IBAction)changeByteGrouping:(nullable id)sender
+{
+	NSMenuItem *menuItem = (NSMenuItem *)sender;
+	NSUInteger bytesPerColumn = (NSUInteger)menuItem.tag;
+	_textView.controller.bytesPerColumn = bytesPerColumn;
+	[[NSUserDefaults standardUserDefaults] setInteger:(NSInteger)bytesPerColumn forKey:ZGMemoryViewerBytesPerColumn];
+}
+
+- (IBAction)cycleByteGrouping:(nullable id)__unused sender
+{
+	static const NSUInteger kByteSizes[] = {1, 2, 4, 8, 16};
+	static const NSUInteger kByteSizeCount = sizeof(kByteSizes) / sizeof(kByteSizes[0]);
+
+	NSUInteger currentBytesPerColumn = _textView.controller.bytesPerColumn;
+	NSUInteger nextIndex = 0;
+
+	for (NSUInteger index = 0; index < kByteSizeCount; index++)
+	{
+		if (kByteSizes[index] == currentBytesPerColumn)
+		{
+			nextIndex = (index + 1) % kByteSizeCount;
+			break;
+		}
+	}
+
+	NSUInteger bytesPerColumn = kByteSizes[nextIndex];
+	_textView.controller.bytesPerColumn = bytesPerColumn;
+	[[NSUserDefaults standardUserDefaults] setInteger:(NSInteger)bytesPerColumn forKey:ZGMemoryViewerBytesPerColumn];
+}
+
 #pragma mark Menu Item Validation
 
 - (BOOL)isProcessIdentifierHalted:(pid_t)processIdentifier
@@ -323,6 +319,10 @@
 	if (userInterfaceItem.action == @selector(toggleDataInspector:))
 	{
 		[menuItem setState:_showsDataInspector];
+	}
+	else if (userInterfaceItem.action == @selector(changeByteGrouping:))
+	{
+		[menuItem setState:(_textView.controller.bytesPerColumn == (NSUInteger)menuItem.tag)];
 	}
 	else if (userInterfaceItem.action == @selector(copyAddress:) || userInterfaceItem.action == @selector(copyRawAddress:) || userInterfaceItem.action == @selector(showDebugger:))
 	{
@@ -815,6 +815,16 @@
 	HFRange selectedAddressRange = [self selectedAddressRange];
 	id <ZGShowMemoryWindow> delegate = self.delegate;
 	[delegate showDebuggerWindowWithProcess:self.currentProcess address:selectedAddressRange.location];
+}
+
+- (void)windowWillClose:(NSNotification *)notification
+{
+	[super windowWillClose:notification];
+	if (_keyEventMonitor != nil)
+	{
+		[NSEvent removeMonitor:ZGUnwrapNullableObject(_keyEventMonitor)];
+		_keyEventMonitor = nil;
+	}
 }
 
 @end
